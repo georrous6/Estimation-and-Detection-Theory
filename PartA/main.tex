@@ -1,0 +1,163 @@
+\documentclass{beamer}
+\usetheme{Madrid}
+\usecolortheme{seahorse}
+\usepackage{amsmath, amssymb}
+
+\title[Minimum Variance in Biased Estimation]{Minimum Variance in Biased Estimation: Bounds and Asymptotically Optimal Estimators}
+\author{Yonina C. Eldar \\ Presented by: Aristeidis Daskalopoulos (10640) \\ Rousomanis Georgios (10703)}
+\institute{IEEE Transactions on Signal Processing, July 2004}
+\date{}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Motivation and Background}
+  \begin{itemize}
+    \item A common approach to developing well-behaved estimators
+    in overparameterized estimation problems is to use \textit{regularization} techniques.
+    \item Regularization reduces variance but introduces bias.
+    \item Cramér–Rao Lower Bound (CRLB) assumes unbiased estimators.
+    \item Need for bounds applicable to biased estimators.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Key Goals of the Paper}
+  \begin{itemize}
+    \item Develop Uniform Cramér–Rao Lower Bound (UCRLB) for biased estimators.
+    \item Use Frobenius and spectral norms of the bias gradient matrix.
+    \item Construct estimators (Tikhonov, shrunken, PML) that achieve the bounds.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Classical and Biased CRLB}
+  \begin{itemize}
+    \item Unbiased CRLB: $\operatorname{Var}(\hat{\theta}) \geq I(\theta)^{-1}$
+    \item Biased CRLB:
+    \begin{equation*}
+        \begin{aligned}
+            b(\theta) &= \mathbb{E}[\hat{\theta}] - \theta \\
+            \operatorname{Cov}(\hat{\theta}) &\geq (I + B) I^{-1} (I + B)^T \\
+            B &= \frac{\partial b}{\partial \theta}
+        \end{aligned}
+    \end{equation*}
+    Biased CRLB does not depend directly on the bias but only on the bias gradient matrix!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Measuring Bias Gradient}
+  \begin{itemize}
+  \item Given a desired bias gradient, the biased CRLB serves as a bound on the smallest attainable variance.
+  \item How to choose $B$?
+  \item Instead, use norms of $B$ to constrain variance
+  \item Uniform CRLB (UCRLB): is a bound on the smallest attainable
+  variance that can be achieved using any estimator with bias gradient whose norm is bounded by a constant.
+  \begin{itemize}
+    \item Frobenius norm: $\mathrm{Tr}(B^T W B)$ (average bias)
+    \item Spectral norm: $\lambda_{\max}(W^{1/2} B)$ (worst-case bias)
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{UCRLB with Average Bias Constraint}
+  \begin{itemize}
+    \item Generally, minimizing the bias results in an increase in variance and vice versa.
+    \item Tradeoff between bias and variance
+    \item Minimize $\mathrm{Tr}[(I + B) I^{-1} (I + B)^T]$ subject to $\mathrm{Tr}(B^T W B) \leq c$
+    \item Optimal solution:
+    \begin{align*}
+      B &= (\lambda I + I)^{-1} I \\
+      \text{with } \lambda \text{ such that } \mathrm{Tr}(B^T W B) &= c
+    \end{align*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{UCRLB with Worst-Case Bias Constraint}
+  \begin{itemize}
+    \item Minimize same variance bound, but now with:
+    \[
+    \lambda_{\max}(W^{1/2} B) \leq c
+    \]
+    \item If $W$ and $I$ share eigenvectors: closed-form
+    \item Otherwise: use Semidefinite Programming (SDP)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Scalar vs. Vector UCRLB}
+  \begin{itemize}
+    \item Scalar UCRLB: sum of bounds for each parameter
+    \item Vector UCRLB: joint estimation under one global constraint
+    \item Vector bound is tighter due to convexity and shared optimization
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Achievability: Linear Gaussian Model}
+  \begin{itemize}
+    \item Model: $y = H \theta + w$, with $w \sim \mathcal{N}(0, \Sigma)$
+    \item Fisher information: $I = H^T \Sigma^{-1} H$
+    \item Optimal estimators:
+    \begin{itemize}
+      \item Tikhonov regularization for Frobenius norm
+      \item Shrunken estimator for spectral norm
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Penalized Maximum Likelihood Estimator}
+  \begin{itemize}
+    \item PML: $\hat{\theta} = \arg\max \left[ \log L(\theta) - \lambda \phi(\theta) \right]$
+    \item Equivalent to MAP estimation if $\phi(\theta)$ represents $\log$-prior
+    \item For large $n$, derive asymptotic bias and variance
+    \item Choose $\phi$ to asymptotically achieve UCRLB
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Example: Exponential Model}
+  \begin{itemize}
+    \item $x_i \sim \text{Exp}(\theta)$, $f(x;\theta) = \frac{1}{\theta} e^{-x/\theta}$
+    \item Try $\phi(\theta) = 1/\theta$ and $\log(\theta)$
+    \item Both choices result in PML estimators that asymptotically reach UCRLB
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Simulations and Results}
+  \begin{itemize}
+    \item PML estimator variance vs. squared bias gradient
+    \item Performance matches UCRLB for large $n$
+    \item Penalty choice impacts small-sample performance
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion}
+  \begin{itemize}
+    \item Derived bounds for biased estimation using norm constraints
+    \item Proved achievability in linear Gaussian and general iid models
+    \item Tikhonov, shrunken, and PML estimators are asymptotically optimal
+    \item Open questions:
+    \begin{itemize}
+      \item Finite-sample analysis
+      \item Singular Fisher Information cases
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+  \scriptsize
+  \begin{itemize}
+    \item Hero et al., IEEE TSP, 1996
+    \item Tikhonov, Sov. Math. Dokl., 1963
+    \item Kay, Fundamentals of Statistical Signal Processing, 1993
+    \item Eldar, IEEE TSP, 2004
+    \item Fessler et al., IEEE Trans., multiple years
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Q \& A}
+  \centering
+  Thank you for your attention! \\
+  Questions and Discussion
+\end{frame}
+
+\end{document}
