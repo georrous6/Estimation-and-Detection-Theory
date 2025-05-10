@@ -64,7 +64,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{UCRLB with Worst Case Bias Constraint}
+\begin{frame}{Worst Case Bias Constraint}
   \begin{itemize}
     \item Generally, minimizing the bias results in an increase in variance and vice versa.
     \item Tradeoff between bias and variance
@@ -92,7 +92,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{UCRLB with Worst Case Bias Constraint}
+\begin{frame}{Worst Case Bias Constraint (cont.)}
 The maximal variation of the bias norm over the region $\mathcal{S}$ is
 \[
 \max_{\mathbf{u} \in \mathcal{S}} \mathcal{V} = 
@@ -118,7 +118,7 @@ D_{WC} =
 \]
 \end{frame}
 
-\begin{frame}{UCRLB with Average Bias Constraint}
+\begin{frame}{Average Bias Constraint}
 \begin{itemize}
     \item The worst-case variation occurs when $\mathbf{z}$ is chosen to be a unit-norm vector in the direction
     of the eigenvector corresponding to the largest eigenvalue of 
@@ -139,7 +139,7 @@ D_{WC} =
 \end{itemize}
 \end{frame}
 
-\begin{frame}{UCRLB with Average Bias Constraint}
+\begin{frame}{Average Bias Constraint (cont.)}
 Let
 \begin{itemize}
     \item $A$ the diagonal matrix with diagonal elements $\alpha_{ii}$
@@ -165,93 +165,97 @@ D_{AVG} = \operatorname{Tr}(\mathbf{D}^*\mathbf{D W}), \quad \mathbf{W} \geq 0
     D_{AVG} = \operatorname{Tr}(\mathbf{D}^*\mathbf{D W}) \leq \gamma
     \]
     \begin{itemize}
-        \item If $\gamma \geq \operatorname{Tr}(\mathbf{W})$, then we choose $\mathbf{D} = -\mathbf{I}$ which
-        results in $C(\mathbf{D}) = 0$.
+        \item If $\gamma \geq \operatorname{Tr}(\mathbf{W})$, then we choose 
+        $\mathbf{D} = -\mathbf{I} \Rightarrow C(\mathbf{D}) = 0$.
         \item If $\gamma < \operatorname{Tr}(\mathbf{W})$, consider the Lagrangian:
         \[
         L = (\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^* +
         \alpha (\operatorname{Tr}(\mathbf{D}^*\mathbf{D W}) - \gamma), \quad \alpha \leq 0
         \]
-        Since is strictly convex, it has a unique minimum at $\mathbf{D} = \hat{\mathbf{D}}_{AVG}$ with
+        Take derivative w.r.t. $\mathbf{D}$ and set to zero:
         \[
-        \hat{\mathbf{D}}_{AVG} = -\mathbf{I} + \alpha (\mathbf{I} + \alpha \mathbf{W J})^{-1}\mathbf{W J}
+        (\mathbf{I} + \mathbf{D})\mathbf{J}^{-1} + \alpha\mathbf{D}\mathbf{W} = 0
         \]
-        \begin{itemize}
-            \item If $\alpha = 0$, then $\hat{\mathbf{D}}_{AVG} = -\mathbf{I}$ which violates the constraints.
-            \item If $\alpha > 0$, then from KKT conditions we have 
-            $\operatorname{Tr}(\mathbf{D}_{AVG}^*\mathbf{D}_{AVG} \mathbf{W}) = \gamma$
-        \end{itemize}
+        Solution:
+        \[
+        \hat{\mathbf{D}}_{AVG} = (\mathbf{I} + \alpha \mathbf{W J})^{-1}
+        \]
     \end{itemize}
 \end{frame}
 
-\begin{frame}{Comparison with the Scalar UCRLB}
-\begin{itemize}
-    \item Scalar UCRLB treats each component of $\mathbf{x}$ separately:
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{UCRLB with Average Bias Constraint (cont.)}
     \[
-        \min_{d_i} \operatorname{Var}(\hat{x}_i), \quad \text{s.t. } \|d_i\|^2_W \leq \gamma_i
+    \hat{\mathbf{D}}_{AVG} = (\mathbf{I} + \alpha \mathbf{W J})^{-1}
     \]
-    \item Total variance bound:
-    \[
-        \sum_{i=1}^m \operatorname{Var}(\hat{x}_i) \geq \sum_{i=1}^m C_i
-    \]
-    \item Vector UCRLB:
-    \[
-        \min_{\mathbf{D}} \operatorname{Tr}[(\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^*]
-        \quad \text{s.t. } \operatorname{Tr}(\mathbf{D}^* \mathbf{D} \mathbf{W}) \leq \gamma
-    \]
-\end{itemize}
-\pause
-\textbf{Key insight:} Joint estimation can lead to strictly smaller total variance!
+    \begin{itemize}
+        \item $\alpha = 0 \Rightarrow \hat{\mathbf{D}}_{AVG} = -\mathbf{I}$ which violates the constraints.
+        \item If $\alpha > 0$, then from KKT: 
+        $\operatorname{Tr}(\mathbf{D}_{AVG}^*\mathbf{D}_{AVG} \mathbf{W}) = \gamma$.
+        
+        When $\mathbf{W} > 0$, we can write:
+        \[
+        \text{Tr}\left((\mathbf{W}^{-1} + \alpha\mathbf{J})^{-2}\mathbf{W}^{-1}\right) = \gamma
+        \]
+        and variance bound becomes:
+        \[
+        C \geq \alpha^2\text{Tr}\left((\mathbf{W}^{-1} + \alpha\mathbf{J})^{-2}\mathbf{J}\right)
+        \]
+    \end{itemize}
 \end{frame}
 
-\begin{frame}{Comparison: Scalar vs. Vector UCRLB}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Comparison with UCRLB}
 \begin{itemize}
-    \item Let $\mathbf{D}$ be a matrix with rows $d_1^T, d_2^T, \dots, d_m^T$
-    \item Then:
+    \item Until know we minimized the joint variance
+    \item Scalar UCRLB minimizes variance for each component separately:
     \[
-        \operatorname{Tr}(\mathbf{D}^* \mathbf{D} \mathbf{W}) = \sum_{i=1}^m d_i^* \mathbf{W} d_i
+    \left[\mathbf{C}(\mathbf{D})\right]_{ii} = (\left[\mathbf{I}\right]_i^* + \mathbf{d}_i)\mathbf{J}^{-1}
+    (\left[\mathbf{I}\right]_i + \mathbf{d}_i^*) \quad \text{s.t. } \mathbf{d}_i \mathbf{W} \mathbf{d}_i^* 
+    \leq \gamma_i
     \]
-    \item Vector UCRLB allows for interaction across components
-    \[
-        \Rightarrow \text{More degrees of freedom} \Rightarrow \text{Tighter bound}
-    \]
+    \item The total variance is:
+    \begin{align*}
+    \min_{\mathbf{D}} \left\{ \sum_{i=1}^{m} (\left[\mathbf{I}\right]_i^* + \mathbf{d}_i)\mathbf{J}^{-1}(\left[\mathbf{I}\right]_i +
+    \mathbf{d}_i^*) \right\}
+    &= \min_{\mathbf{D}} \left\{ \text{Tr}\left((\mathbf{I}+\mathbf{D})\mathbf{J}^{-1}(\mathbf{I} +
+    \mathbf{D})^*\right) \right\} \\
+    &= \min_{\mathbf{D}} C(\mathbf{D})
+    \end{align*}
+
+    Thus, we have the same optimization problem!
+    
 \end{itemize}
-\textbf{Audience question:} Why might treating parameters jointly be better in ill-conditioned problems?
 \end{frame}
 
-
-\begin{frame}{UCRLB with Worst-Case Bias Constraint (cont.)}
+\begin{frame}{Comparison with UCRLB (cont.)}
 \begin{itemize}
-    \item Now minimize $C(\mathbf{D}) = \operatorname{Tr}[(\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^*]$ 
-    subject to:
-    \[
-    D_{WC} = ||\mathbf{D} \mathbf{M}^{1/2}||^2 \leq \gamma
-    \]
-    \item If $\gamma \geq \lambda_{\max}(\mathbf{M})$, choose $\mathbf{D} = -\mathbf{I}$ $\Rightarrow$ $C(\mathbf{D}) = 0$
-    \item Otherwise, we solve the constrained problem using semidefinite programming (SDP)
+    \item Scalar UCRLB minimizes $\mathbf{C}(\mathbf{D})$ s.t. 
+    \[[\mathbf{D}\mathbf{W}\mathbf{D}^*]_{ii} \leq \gamma_i, \quad 1 \leq i \leq m.\]
+    \item Vector UCRLB minimizes $\mathbf{C}(\mathbf{D})$ s.t. 
+    \[\sum_{i=1}^m[\mathbf{D}\mathbf{W}\mathbf{D}^*]_{ii} \leq \sum_{i=1}^m\gamma_i = \gamma, 
+    \quad 1 \leq i \leq m.\]
+    \item Scalar constraints are tighter for the same optimization problem.
+    \item Joint optimization over \( \mathbf{D} \) yields lower overall variance
+    \item Cross-correlation allows bias in one component to reduce total variance by compensating for another.
 \end{itemize}
-\vspace{0.3cm}
-\textbf{Audience question:} Why might minimizing $C(\mathbf{D})$ under a spectral constraint be harder than a Frobenius one?
 \end{frame}
 
-\begin{frame}{Closed-Form Solution under Joint Diagonalization}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{UCRLB with Worst-Case Bias Constraint}
+We now consider the problem of minimizing $C(\mathbf{D})$ subject to
+\[
+\mathbf{z}^*\mathbf{S}\mathbf{D}^*\mathbf{D}\mathbf{S}\mathbf{z} \leq \gamma, \quad \mathbf{z} \in \mathbb{C}^m, \quad \mathbf{z}^*\mathbf{z} = 1.
+\]
+Let $\lambda_{max}$ the largest eigenvalue of $\mathbf{S}$.
 \begin{itemize}
-    \item Suppose $\mathbf{M}$ and $\mathbf{J}^{-1}$ share eigenvectors
-    \item Let $\mathbf{J}^{-1} = \mathbf{U} \boldsymbol{\Lambda} \mathbf{U}^*$, $\mathbf{M} = \mathbf{U} \boldsymbol{\Sigma} \mathbf{U}^*$
-    \item Optimal $\mathbf{D}$:
-    \[
-        \mathbf{D}_{WC} = -\mathbf{U} \mathbf{P} \mathbf{U}^*, \quad P_{ii} = 
-        \begin{cases}
-            1, & \lambda_i \leq \gamma \\
-            0, & \text{otherwise}
-        \end{cases}
-    \]
-    \item Then:
-    \[
-        C(\mathbf{D}_{WC}) = \operatorname{Tr}[(\mathbf{I} - \mathbf{P}) \mathbf{J}^{-1}]
-    \]
+    \item If $\gamma \geq \lambda_{max}^2$, then we choose 
+    $\mathbf{D} = -\mathbf{I} \Rightarrow C(\mathbf{D}) = 0$
+    \item If $\gamma < \lambda_{max}^2$
 \end{itemize}
-\textbf{Conclusion:} The optimal bias structure projects out directions that most influence total variance.
 \end{frame}
 
 
