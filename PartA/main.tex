@@ -34,114 +34,228 @@
 
 \begin{frame}{Classical and Biased CRLB}
   \begin{itemize}
-    \item Unbiased CRLB: $\operatorname{Var}(\hat{\theta}) \geq I(\theta)^{-1}$
+    \item Unbiased CRLB: $\operatorname{Var}(\hat{\mathbf{x}}) \geq \mathbf{J}^{-1}$
     \item Biased CRLB:
     \begin{equation*}
         \begin{aligned}
-            b(\theta) &= \mathbb{E}[\hat{\theta}] - \theta \\
-            \operatorname{Cov}(\hat{\theta}) &\geq (I + B) I^{-1} (I + B)^T \\
-            B &= \frac{\partial b}{\partial \theta}
+            \mathbf{b}(\mathbf{x}_0) &= \mathbb{E}[\hat{\mathbf{x}}] - \mathbf{x}_0 \\
+            \operatorname{Cov}(\hat{\mathbf{x}}) &\geq (\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} 
+            (\mathbf{I} + \mathbf{D})^* \triangleq \mathbf{C}(\mathbf{D}) \\
+            \mathbf{D} &= \frac{\partial \mathbf{b}(\mathbf{x}_0)}{\partial \mathbf{x}}
         \end{aligned}
     \end{equation*}
-    Biased CRLB does not depend directly on the bias but only on the bias gradient matrix!
+    \item Biased CRLB does not depend directly on the bias but only on the bias gradient matrix!
+    \item $D$ is invariant to a constant bias term so that in effect, it characterizes the part of the bias 
+    that cannot be removed
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Measuring Bias Gradient}
+\begin{frame}{Selecting Bias Gradient Matrix}
   \begin{itemize}
   \item Given a desired bias gradient, the biased CRLB serves as a bound on the smallest attainable variance.
-  \item How to choose $B$?
-  \item Instead, use norms of $B$ to constrain variance
+  \item How to choose $\mathbf{D}$?
+  \item Instead, use norms of $\mathbf{D}$ to constrain variance
+  \begin{itemize}
+    \item Frobenius norm (average bias)
+    \item Spectral norm (worst-case bias)
+  \end{itemize}
   \item Uniform CRLB (UCRLB): is a bound on the smallest attainable
   variance that can be achieved using any estimator with bias gradient whose norm is bounded by a constant.
-  \begin{itemize}
-    \item Frobenius norm: $\mathrm{Tr}(B^T W B)$ (average bias)
-    \item Spectral norm: $\lambda_{\max}(W^{1/2} B)$ (worst-case bias)
-  \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{UCRLB with Average Bias Constraint}
+\begin{frame}{UCRLB with Worst Case Bias Constraint}
   \begin{itemize}
     \item Generally, minimizing the bias results in an increase in variance and vice versa.
     \item Tradeoff between bias and variance
-    \item Minimize $\mathrm{Tr}[(I + B) I^{-1} (I + B)^T]$ subject to $\mathrm{Tr}(B^T W B) \leq c$
-    \item Optimal solution:
-    \begin{align*}
-      B &= (\lambda I + I)^{-1} I \\
-      \text{with } \lambda \text{ such that } \mathrm{Tr}(B^T W B) &= c
-    \end{align*}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{UCRLB with Worst-Case Bias Constraint}
-  \begin{itemize}
-    \item Minimize same variance bound, but now with:
+    \item Minimize $\operatorname{Tr}[\mathbf{C}(\mathbf{D})]$ subject to some constraint on $\mathbf{D}$.
+    \item How to develop a meaningful constraint on $\mathbf{D}$?
+    
+    First-order Taylor expansion at the neighbor of $\mathbf{x}_0$:
     \[
-    \lambda_{\max}(W^{1/2} B) \leq c
+        \mathbf{b}(\mathbf{x}) - \mathbf{b}(\mathbf{x}_0) \approx \mathbf{D}(\mathbf{x} - \mathbf{x}_0) 
+        \triangleq \mathbf{D} \mathbf{u}
     \]
-    \item If $W$ and $I$ share eigenvectors: closed-form
-    \item Otherwise: use Semidefinite Programming (SDP)
+    thus,
+    \[
+        ||\mathbf{b}(\mathbf{x}) - \mathbf{b}(\mathbf{x}_0)||^2 \approx 
+        \mathbf{u}^* \mathbf{D}^* \mathbf{D u} 
+        \triangleq \mathcal{V}
+    \]
+    Let
+    \[
+    \mathcal{S} = 
+    \{\mathbf{x}|(\mathbf{x} - \mathbf{x}_0)^*\mathbf{M}^{-1}(\mathbf{x} - \mathbf{x}_0) \leq 1\}, 
+    \quad \mathbf{M} > 0
+    \]
+    
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Scalar vs. Vector UCRLB}
-  \begin{itemize}
-    \item Scalar UCRLB: sum of bounds for each parameter
-    \item Vector UCRLB: joint estimation under one global constraint
-    \item Vector bound is tighter due to convexity and shared optimization
-  \end{itemize}
+\begin{frame}{UCRLB with Worst Case Bias Constraint}
+The maximal variation of the bias norm over the region $\mathcal{S}$ is
+\[
+\max_{\mathbf{u} \in \mathcal{S}} \mathcal{V} = 
+\max_{\mathbf{u}^*\mathbf{M}^{-1}\mathbf{u} \leq 1} ||\mathbf{D u}||^2
+\]
+Let $\mathbf{z} = \mathbf{M}^{-1/2}\mathbf{u}$, then
+\[
+\max_{\mathbf{u}^*\mathbf{M}^{-1}\mathbf{u} \leq 1} ||\mathbf{D u}||^2 = 
+\max_{\mathbf{z}^*\mathbf{z} \leq 1} ||\mathbf{D} \mathbf{M}^{1/2}\mathbf{z}||^2 = 
+\max_{\mathbf{z}^*\mathbf{z} \leq 1} \mathbf{z}^* \mathbf{M}^{1/2} \mathbf{D}^* \mathbf{D} 
+\mathbf{M}^{1/2} \mathbf{z}
+\]
+and finally
+\[
+\max_{\mathbf{u}^*\mathbf{M}^{-1}\mathbf{u} \leq 1} ||\mathbf{D u}||^2 = 
+||\mathbf{D} \mathbf{M}^{1/2}||^2
+\]
+where $|| \cdot ||$ denote the \textit{spectral norm} of a matrix. Thus,
+\[
+D_{WC} = 
+\max_{\mathbf{z} \in \mathbb{C}^m, \, ||\mathbf{z}|| = 1} \mathbf{z}^* \mathbf{S} \mathbf{D}^* \mathbf{D} 
+\mathbf{S} \mathbf{z}, \quad S \geq 0
+\]
 \end{frame}
 
-\begin{frame}{Achievability: Linear Gaussian Model}
-  \begin{itemize}
-    \item Model: $y = H \theta + w$, with $w \sim \mathcal{N}(0, \Sigma)$
-    \item Fisher information: $I = H^T \Sigma^{-1} H$
-    \item Optimal estimators:
+\begin{frame}{UCRLB with Average Bias Constraint}
+\begin{itemize}
+    \item The worst-case variation occurs when $\mathbf{z}$ is chosen to be a unit-norm vector in the direction
+    of the eigenvector corresponding to the largest eigenvalue of 
+    $\mathbf{M}^{1/2} \mathbf{D}^* \mathbf{D} \mathbf{M}^{1/2}$.
+    \item How to develop an average bias measure?
+    \item Choose $\mathbf{z}$ as a linear combination of the eigenvectors of 
+    $\mathbf{M}^{1/2} \mathbf{D}^* \mathbf{D} \mathbf{M}^{1/2}$ such that 
+    $||\mathbf{z}||=1$:
+    \[
+        \mathbf{z} = \sum_{i=1}^m \alpha_i \mathbf{v}_i, \quad \sum_{i=1}^m \alpha_i^2 = 1
+    \]
+    Then
+    \[
+        \mathcal{V} = \mathbf{z}^* \mathbf{M}^{1/2} \mathbf{D}^* \mathbf{D} \mathbf{M}^{1/2} \mathbf{z} =
+        \sum_{i=1}^m \alpha_i^2 \lambda_i
+    \]
+    where $\lambda_i$ the eigenvalues of $\mathbf{M}^{1/2} \mathbf{D}^* \mathbf{D} \mathbf{M}^{1/2}$.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{UCRLB with Average Bias Constraint}
+Let
+\begin{itemize}
+    \item $A$ the diagonal matrix with diagonal elements $\alpha_{ii}$
+    \item $\mathbf{V}$ the matrix of eigenvectors $\mathbf{v}_i$
+    \item $\mathbf{Q} = \mathbf{M}^{1/2} \mathbf{V A V}^* \mathbf{M}^{1/2}$
+\end{itemize}
+Then 
+\[
+ \mathcal{V} = \operatorname{Tr}\left(\mathbf{V A V}^*\mathbf{M}^{1/2}\mathbf{D}^*\mathbf{DM}^{1/2}\right)
+  = \operatorname{Tr}(\mathbf{D}^*\mathbf{D Q})
+\]
+It follows that the weighted Frobenius norm $\operatorname{Tr}(\mathbf{D}^*\mathbf{D Q})$ of $\mathbf{D}$ 
+is a measure of the average variation in the norm of the bias over the ellipsoid and is therefore a reasonable
+average bias measure. Thus:
+\[
+D_{AVG} = \operatorname{Tr}(\mathbf{D}^*\mathbf{D W}), \quad \mathbf{W} \geq 0
+\]
+\end{frame}
+
+\begin{frame}{UCRLB with Average Bias Constraint}
+    Consider the problem of minimizing $C(\mathbf{D})$ subject to
+    \[
+    D_{AVG} = \operatorname{Tr}(\mathbf{D}^*\mathbf{D W}) \leq \gamma
+    \]
     \begin{itemize}
-      \item Tikhonov regularization for Frobenius norm
-      \item Shrunken estimator for spectral norm
+        \item If $\gamma \geq \operatorname{Tr}(\mathbf{W})$, then we choose $\mathbf{D} = -\mathbf{I}$ which
+        results in $C(\mathbf{D}) = 0$.
+        \item If $\gamma < \operatorname{Tr}(\mathbf{W})$, consider the Lagrangian:
+        \[
+        L = (\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^* +
+        \alpha (\operatorname{Tr}(\mathbf{D}^*\mathbf{D W}) - \gamma), \quad \alpha \leq 0
+        \]
+        Since is strictly convex, it has a unique minimum at $\mathbf{D} = \hat{\mathbf{D}}_{AVG}$ with
+        \[
+        \hat{\mathbf{D}}_{AVG} = -\mathbf{I} + \alpha (\mathbf{I} + \alpha \mathbf{W J})^{-1}\mathbf{W J}
+        \]
+        \begin{itemize}
+            \item If $\alpha = 0$, then $\hat{\mathbf{D}}_{AVG} = -\mathbf{I}$ which violates the constraints.
+            \item If $\alpha > 0$, then from KKT conditions we have 
+            $\operatorname{Tr}(\mathbf{D}_{AVG}^*\mathbf{D}_{AVG} \mathbf{W}) = \gamma$
+        \end{itemize}
     \end{itemize}
-  \end{itemize}
 \end{frame}
 
-\begin{frame}{Penalized Maximum Likelihood Estimator}
-  \begin{itemize}
-    \item PML: $\hat{\theta} = \arg\max \left[ \log L(\theta) - \lambda \phi(\theta) \right]$
-    \item Equivalent to MAP estimation if $\phi(\theta)$ represents $\log$-prior
-    \item For large $n$, derive asymptotic bias and variance
-    \item Choose $\phi$ to asymptotically achieve UCRLB
-  \end{itemize}
+\begin{frame}{Comparison with the Scalar UCRLB}
+\begin{itemize}
+    \item Scalar UCRLB treats each component of $\mathbf{x}$ separately:
+    \[
+        \min_{d_i} \operatorname{Var}(\hat{x}_i), \quad \text{s.t. } \|d_i\|^2_W \leq \gamma_i
+    \]
+    \item Total variance bound:
+    \[
+        \sum_{i=1}^m \operatorname{Var}(\hat{x}_i) \geq \sum_{i=1}^m C_i
+    \]
+    \item Vector UCRLB:
+    \[
+        \min_{\mathbf{D}} \operatorname{Tr}[(\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^*]
+        \quad \text{s.t. } \operatorname{Tr}(\mathbf{D}^* \mathbf{D} \mathbf{W}) \leq \gamma
+    \]
+\end{itemize}
+\pause
+\textbf{Key insight:} Joint estimation can lead to strictly smaller total variance!
 \end{frame}
 
-\begin{frame}{Example: Exponential Model}
-  \begin{itemize}
-    \item $x_i \sim \text{Exp}(\theta)$, $f(x;\theta) = \frac{1}{\theta} e^{-x/\theta}$
-    \item Try $\phi(\theta) = 1/\theta$ and $\log(\theta)$
-    \item Both choices result in PML estimators that asymptotically reach UCRLB
-  \end{itemize}
+\begin{frame}{Comparison: Scalar vs. Vector UCRLB}
+\begin{itemize}
+    \item Let $\mathbf{D}$ be a matrix with rows $d_1^T, d_2^T, \dots, d_m^T$
+    \item Then:
+    \[
+        \operatorname{Tr}(\mathbf{D}^* \mathbf{D} \mathbf{W}) = \sum_{i=1}^m d_i^* \mathbf{W} d_i
+    \]
+    \item Vector UCRLB allows for interaction across components
+    \[
+        \Rightarrow \text{More degrees of freedom} \Rightarrow \text{Tighter bound}
+    \]
+\end{itemize}
+\textbf{Audience question:} Why might treating parameters jointly be better in ill-conditioned problems?
 \end{frame}
 
-\begin{frame}{Simulations and Results}
-  \begin{itemize}
-    \item PML estimator variance vs. squared bias gradient
-    \item Performance matches UCRLB for large $n$
-    \item Penalty choice impacts small-sample performance
-  \end{itemize}
+
+\begin{frame}{UCRLB with Worst-Case Bias Constraint (cont.)}
+\begin{itemize}
+    \item Now minimize $C(\mathbf{D}) = \operatorname{Tr}[(\mathbf{I} + \mathbf{D}) \mathbf{J}^{-1} (\mathbf{I} + \mathbf{D})^*]$ 
+    subject to:
+    \[
+    D_{WC} = ||\mathbf{D} \mathbf{M}^{1/2}||^2 \leq \gamma
+    \]
+    \item If $\gamma \geq \lambda_{\max}(\mathbf{M})$, choose $\mathbf{D} = -\mathbf{I}$ $\Rightarrow$ $C(\mathbf{D}) = 0$
+    \item Otherwise, we solve the constrained problem using semidefinite programming (SDP)
+\end{itemize}
+\vspace{0.3cm}
+\textbf{Audience question:} Why might minimizing $C(\mathbf{D})$ under a spectral constraint be harder than a Frobenius one?
 \end{frame}
 
-\begin{frame}{Conclusion}
-  \begin{itemize}
-    \item Derived bounds for biased estimation using norm constraints
-    \item Proved achievability in linear Gaussian and general iid models
-    \item Tikhonov, shrunken, and PML estimators are asymptotically optimal
-    \item Open questions:
-    \begin{itemize}
-      \item Finite-sample analysis
-      \item Singular Fisher Information cases
-    \end{itemize}
-  \end{itemize}
+\begin{frame}{Closed-Form Solution under Joint Diagonalization}
+\begin{itemize}
+    \item Suppose $\mathbf{M}$ and $\mathbf{J}^{-1}$ share eigenvectors
+    \item Let $\mathbf{J}^{-1} = \mathbf{U} \boldsymbol{\Lambda} \mathbf{U}^*$, $\mathbf{M} = \mathbf{U} \boldsymbol{\Sigma} \mathbf{U}^*$
+    \item Optimal $\mathbf{D}$:
+    \[
+        \mathbf{D}_{WC} = -\mathbf{U} \mathbf{P} \mathbf{U}^*, \quad P_{ii} = 
+        \begin{cases}
+            1, & \lambda_i \leq \gamma \\
+            0, & \text{otherwise}
+        \end{cases}
+    \]
+    \item Then:
+    \[
+        C(\mathbf{D}_{WC}) = \operatorname{Tr}[(\mathbf{I} - \mathbf{P}) \mathbf{J}^{-1}]
+    \]
+\end{itemize}
+\textbf{Conclusion:} The optimal bias structure projects out directions that most influence total variance.
 \end{frame}
+
+
+
 
 \begin{frame}{References}
   \scriptsize
