@@ -1,4 +1,4 @@
-function [max_window_size, idx, cleanIntervals, noisyIntervals] = find_smallest_interval(x, N)
+function [cleanIntervals, noisyIntervals, max_window_size, idx] = find_intervals(x, N)
     
     % Step 1: Group noisy indices into contiguous intervals
     d = diff(x);
