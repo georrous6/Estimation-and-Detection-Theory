@@ -1,5 +1,10 @@
 clc, clearvars, close all;
 addpath("utils");
+outputDir = fullfile('..', 'plot');
+if ~exist(outputDir, 'dir')
+    mkdir(outputDir);
+end
+
 
 %% Fetch data
 
@@ -22,6 +27,9 @@ scatter(not_blinks, ones(size(not_blinks)), 2, 'b', 'filled', 'o');
 grid on;
 title('Blink Intervals');
 legend({'blink', 'no blink'});
+
+filename = fullfile(outputDir, 'clean_and_noisy_intervals.pdf');
+exportgraphics(gcf, filename, 'ContentType', 'vector');
 
 %% Plot autocorrelation
 
@@ -50,6 +58,9 @@ for i = 1:n_channels
         title(sprintf('Channel %d: Single-Channel Smoothing (Train Data)', i));
         hold off;
 
+        filename = fullfile(outputDir, 'single_channel_smoothing_train.pdf');
+        exportgraphics(gcf, filename, 'ContentType', 'vector');
+
         figure;
         hold on;
         plot(test_eeg(i,:), '-k');
@@ -60,6 +71,9 @@ for i = 1:n_channels
         ylabel('V');
         title(sprintf('Channel %d: Single-Channel Smoothing (Test Data)', i));
         hold off;
+
+        filename = fullfile(outputDir, 'single_channel_smoothing_test.pdf');
+        exportgraphics(gcf, filename, 'ContentType', 'vector');
     end
 end
 
@@ -82,6 +96,9 @@ ylabel('V');
 title(sprintf('Channel %d: Multi-Channel Smoothing (Train Data)', plot_channel));
 hold off;
 
+filename = fullfile(outputDir, 'multi_channel_smoothing_train.pdf');
+exportgraphics(gcf, filename, 'ContentType', 'vector');
+
 figure;
 hold on;
 plot(test_eeg(plot_channel,:), '-k');
@@ -92,3 +109,6 @@ xlabel('t');
 ylabel('V');
 title(sprintf('Channel %d: Multi-Channel Smoothing (Test Data)', plot_channel));
 hold off;
+
+filename = fullfile(outputDir, 'multi_channel_smoothing_test.pdf');
+exportgraphics(gcf, filename, 'ContentType', 'vector');
