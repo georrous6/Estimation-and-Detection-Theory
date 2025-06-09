@@ -1,4 +1,5 @@
 function [s_train, s_test, rmse] = wiener_smoothing(x_train, x_test, blinks, M)
+
     x_train = x_train(:);
     x_test = x_test(:);
     N = length(x_train);
@@ -8,23 +9,28 @@ function [s_train, s_test, rmse] = wiener_smoothing(x_train, x_test, blinks, M)
     R_ss = zeros(M, M);
     R_xx = zeros(M, M);
 
+    not_blinks = setdiff(1:N, blinks);
+    n_noisy = length(blinks);
+    n_clean = length(not_blinks);
+
+    noisy_mean = mean(x_train(blinks));
+    clean_mean = mean(x_train(not_blinks));
+
     for i = 1:length(cleanIntervals)
         idx = cleanIntervals{i}(1):cleanIntervals{i}(2);
-        data = x_train(idx);
-        data = data - mean(data);
-        r_full = xcorr(data, M - 1, 'biased');
-        R_ss = R_ss + toeplitz(r_full(M:end));
+        data = x_train(idx) - clean_mean;
+        r_full = xcorr(data, M - 1, 'unbiased');
+        alpha = length(idx) / n_clean;
+        R_ss = R_ss + alpha * toeplitz(r_full(M:end));
     end
-    R_ss = R_ss ./ length(cleanIntervals);
 
     for i = 1:length(noisyIntervals)
         idx = noisyIntervals{i}(1):noisyIntervals{i}(2);
-        data = x_train(idx);
-        data = data - mean(data);
-        r_full = xcorr(data, M - 1, 'biased');
-        R_xx = R_xx + toeplitz(r_full(M:end));
+        data = x_train(idx) - noisy_mean;
+        r_full = xcorr(data, M - 1, 'unbiased');
+        alpha = length(idx) / n_noisy;
+        R_xx = R_xx + alpha * toeplitz(r_full(M:end));
     end
-    R_xx = R_xx ./ length(noisyIntervals);
 
     W = R_ss / R_xx;
 

@@ -9,25 +9,30 @@ function [s_train, s_test, rmse] = wiener_smoothing_multichannel(x_train, x_test
     R_xx = zeros(D, D);
     R_ss = zeros(D, D);
 
+    not_blinks = setdiff(1:N, blinks);
+    n_noisy = length(blinks);
+    n_clean = length(not_blinks);
+
+    noisy_mean = mean(x_train(:, blinks), 2);
+    clean_mean = mean(x_train(:, not_blinks), 2);
+
     % Estimate clean signal covariance
     for i = 1:length(cleanIntervals)
         idx = cleanIntervals{i}(1):cleanIntervals{i}(2);
-        data = x_train(:, idx);
-        data = data - mean(data, 2);
+        data = x_train(:, idx) - clean_mean;
         X = build_lagged_matrix(data, M);  % [C*M x T]
-        R_ss = R_ss + (X * X') / size(X, 2);
+        alpha = length(idx) / n_clean;
+        R_ss = R_ss + alpha * (X * X') / size(X, 2);
     end
-    R_ss = R_ss / length(cleanIntervals);
 
     % Estimate noisy signal covariance
     for i = 1:length(noisyIntervals)
         idx = noisyIntervals{i}(1):noisyIntervals{i}(2);
-        data = x_train(:, idx);
-        data = data - mean(data, 2);
+        data = x_train(:, idx) - noisy_mean;
         X = build_lagged_matrix(data, M);  % [C*M x T]
-        R_xx = R_xx + (X * X') / size(X, 2);
+        alpha = length(idx) / n_noisy;
+        R_xx = R_xx + alpha * (X * X') / size(X, 2);
     end
-    R_xx = R_xx / length(noisyIntervals);
 
     % Wiener filter
     W = R_ss / R_xx;

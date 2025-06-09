@@ -25,24 +25,15 @@ hold on;
 scatter(blinks, ones(size(blinks)), 2, 'r', 'filled', 'o');
 scatter(not_blinks, ones(size(not_blinks)), 2, 'b', 'filled', 'o');
 grid on;
-title('Blink Intervals');
+title('Blink Intervals (Train Data)');
 legend({'blink', 'no blink'});
 
 filename = fullfile(outputDir, 'clean_and_noisy_intervals.pdf');
 exportgraphics(gcf, filename, 'ContentType', 'vector');
 
-%% Plot autocorrelation
-
-% nlags = 50;
-% figure;
-% autocorr(train_eeg(plot_channel, blinks), 'NumLags', nlags);
-% 
-% figure;
-% parcorr(train_eeg(plot_channel, blinks), 'NumLags', nlags);
-
 %% Single Channel Smoothing
 
-M = 2000;
+M = 1000;
 rmse = zeros(n_channels, 1);
 for i = 1:n_channels
     [s_train, s_test, rmse(i)] = wiener_smoothing(train_eeg(i,:), test_eeg(i,:), blinks, M);

@@ -12,8 +12,8 @@ function s = apply_wiener_smoothing(x, W, M)
         if endIdx == N
             break;
         else
-            startIdx = endIdx;
-            endIdx = min(endIdx + M - 1, N);
+            startIdx = endIdx + 1;
+            endIdx = min(endIdx + M, N);
         end     
     end
 end
