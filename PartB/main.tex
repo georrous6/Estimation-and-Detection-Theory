@@ -63,6 +63,33 @@
 \usepackage{multicol} % For multi-column sections
 % \usepackage{array}
 
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+    language=Matlab,
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{orange},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=5pt,
+    backgroundcolor=\color{white},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    frame=single,
+    tabsize=2,
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    escapeinside={%}{)}
+}
+}
+
+
 % Set margins
 \geometry{
     top=0cm,
@@ -546,24 +573,47 @@ function [\textit{v\_train}, \textit{v\_test}, \textit{rmse}] = \textit{wiener\_
     \label{fig:multi_channel_filtering}
 \end{figure}
 
-\begin{figure}[ht!]
-    \centering
-    \includegraphics[width=1.1\linewidth]{plot/code_filt_mutli.png}
-    \caption{Core MultiChannel Filtering Wiener Implementation}
-    \label{fig:code_filt_mutli}
-\end{figure}
-
 Είναι εμφανές ότι, σε αυτή την περίπτωση, 
 η απώλεια πληροφορίας στα καθαρά δεδομένα εκπαίδευσης είναι επίσης σχετικά μικρή (όπως και στην smoothing πολυκαναλική προσέγγιση).  
 Αυτό οφείλεται στο γεγονός ότι στην πολυκαναλική προσέγγιση λαμβάνουμε υπόψη τη συσχέτιση μεταξύ των καναλιών,  
 οδηγώντας και πάλι σε μικρές τιμές μέσου τετραγωνικού σφάλματος (άρα και RMSE).
+
+\begin{lstlisting}[caption=Computation of Autocorrelation Matrices for Wiener Filter]
+for p = 9500:size(x_train, 2)
+    x_train_ = x_train(:, 1:p);
+    x_test_  = x_test(:, 1:p);
+    blinks_  = blinks(blinks <= p);
+
+    [C, N] = size(x_train_);
+    [cleanIntervals, noisyIntervals, max_window_size] = find_intervals(blinks_, N);
+
+    % Same as smoothing for the x_train_ and x_test_ datasets
+
+    % Estimate R_ss 
+    % (...)
+    % Estimate R_xx 
+    % (...)
+
+    % Wiener filter
+    W = R_ss / R_xx;
+
+    % Apply Wiener filter on training and testing data
+    s_train = apply_wiener_filtering_multichannel(x_train_, W, M);
+    s_test  = apply_wiener_filtering_multichannel(x_test_, W, M);
+
+    v_train(:, p) = s_train(:, size(s_train, 2));
+    v_test(:, p)  = s_test(:, size(s_test, 2));
+end
+% Compute RMSE across channels (on clean intervals only)
+% ...
+\end{lstlisting}
 
 Η μέθοδος αυτή όμως, σε σχέση με την Smoothing, δεν είναι το ίδιο αποδοτική μιας και εδώ ο πίνακας $W$ με το "πέρας του χρόνου" (δηλαδή με περισσότερες μετρήσεις από το train dataset) κάνει όλο και καλύτερες προσαρμογές (ενώ η Smoothing κάνει όλες τις προσαρμογές εξ' αρχής, έχοντας πρόσβαση σε όλα τα δεδομένα). Οι προσαρμογές στον χρόνο για τον πίνακα $W$ γίνονται όσο διαβάζουμε το train dataset, ενώ για λόγους σύγκρισης χρησιμοποιούμε (κάθε χρονική στιγμή) τον ίδιο πίνακα $W$ και για το test dataset. 
 
 \vspace{+5pt}
 
 \textit{\textbf{Σχόλιο:}} \\
-Για τον υπολογισμό του Wiener Matrix (στο Σχήμα~\ref{fig:code_filt_mutli}), για χάρη συνοχής και ευκολίας στην συγγραφή του κώδικα, ακολουθούμε την ίδια μέθοδο με αυτήν του Smoothing για το subset του αρχικού dataset που μελετάμε. Όπως εξηγήσαμε και στην θεωρητική ανάλυση, η διαφορά έγκειται στο ότι μας ενδιαφέρει \textit{μόνο} το $\hat{\mathbf{v}}[k]$ και όχι τα προηγούμενα lags/υστερήσεις (μιας και τις υστερήσεις τις έχουμε ήδη υπολογίσει στα προηγούμενα iterations της for loop). Θα μπορούσαμε για υπολογιστική απλότητα να αποφύγουμε τις έξτρα πράξεις (όπως δείχνουμε και στην θεωρητική ανάλυση), αλλά ούτως ή άλλως εστιάσαμε την προσοχή μας σε ένα μόνο σημείο του dataset.
+Για τον υπολογισμό του Wiener Matrix (στον κώδικα που παρατίθεται), για χάρη συνοχής και ευκολίας στην συγγραφή του κώδικα, ακολουθούμε την ίδια μέθοδο με αυτήν του Smoothing για το subset του αρχικού dataset που μελετάμε. Όπως εξηγήσαμε και στην θεωρητική ανάλυση, η διαφορά έγκειται στο ότι μας ενδιαφέρει \textit{μόνο} το $\hat{\mathbf{v}}[k]$ και όχι τα προηγούμενα lags/υστερήσεις (μιας και τις υστερήσεις τις έχουμε ήδη υπολογίσει στα προηγούμενα iterations της for loop). Θα μπορούσαμε για υπολογιστική απλότητα να αποφύγουμε τις έξτρα πράξεις (όπως δείχνουμε και στην θεωρητική ανάλυση), αλλά ούτως ή άλλως εστιάσαμε την προσοχή μας σε ένα μόνο σημείο του dataset.
 
 
 \newpage
