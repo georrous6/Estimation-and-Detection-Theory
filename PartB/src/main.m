@@ -11,7 +11,7 @@ end
 
 %% Fetch data
 
-plot_channel    = 1;  % Choose a channel to plot
+plot_channel    = 16;  % Choose a channel to plot
 
 train_data      = load('train.mat');
 test_data       = load('test.mat');
@@ -56,3 +56,21 @@ M = 2;
 fprintf('Multi-Channel-Smoothing RMSE (avg): %f\n', mean(rmse));
 
 plot_eeg_comparison(train_eeg, s_train, test_eeg, s_test, plot_channel, 'Multi-Channel-Smoothing', outputDir);
+
+
+%% Multichannel Filtering
+M = 2;
+[s_train, s_test, rmse] = wiener_filtering_multichannel(train_eeg, test_eeg, blinks, M);
+fprintf('Multi-Channel-Filtering RMSE (avg): %f\n', mean(rmse));
+
+plot_eeg_comparison(train_eeg, s_train, test_eeg, s_test, plot_channel, 'Multi-Channel-Filtering', outputDir);
+
+%%
+squared_errors = [];
+[cleanIntervals, ~, ~] = find_intervals(blinks, N);
+for i = 1:length(cleanIntervals)
+    idx = cleanIntervals{i}(1):cleanIntervals{i}(2);
+    err = train_eeg(:, idx);
+    squared_errors = [squared_errors, err.^2];  % accumulate per-sample squared errors
+end
+mean(sqrt(mean(squared_errors, 2)))
