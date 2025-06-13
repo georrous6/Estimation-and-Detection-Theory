@@ -47,12 +47,12 @@ for i = 1:n_channels
     end
 end
 
-fprintf('Single-Channel RMSE (avg): %f\n', mean(rmse));
+fprintf('Single-Channel-Smoothing RMSE (avg): %f\n', mean(rmse));
 
 
 %% Multichannel Smoothing
 M = 2;
 [s_train, s_test, rmse] = wiener_smoothing_multichannel(train_eeg, test_eeg, blinks, M);
-fprintf('Multi-Channel RMSE (avg): %f\n', mean(rmse));
+fprintf('Multi-Channel-Smoothing RMSE (avg): %f\n', mean(rmse));
 
 plot_eeg_comparison(train_eeg, s_train, test_eeg, s_test, plot_channel, 'Multi-Channel-Smoothing', outputDir);
