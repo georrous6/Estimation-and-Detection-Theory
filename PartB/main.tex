@@ -496,10 +496,79 @@ $\mathbf{R}_{vv}$.
 \end{figure}
 
 
+\newpage
 \section*{Υλοποίηση και Σύγκριση Φίλτρων 1.1 \& 1.2}
-TODO: 
-1) Πρόσθεσε σημαντικά σημεία κώδικα (key parts) με μικρή εξήγηση ώστε να βγάζει νόημα. 
-2) Δώσε τα αποτελέσματα των rmse (+ πως προκύπτουν) και εξήγησε γτ είναι καλύτερο το Πολυκαναλικό (το έχουμε ήδη πει 2 φορές γτ, απλά πες ότι όντως φαίνεται να αξίζει πολύ περισσότερο και στην πράξη και ότι η διαφορά δεν είναι μικρή (κάθε άλλο)). 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+Στο παρακάτω τμήμα κώδικα παρουσιάζεται η κατασκευή των πινάκων αυτοσυσχέτισης $R_{ss}$ και $R_{xx}$, 
+για το μονοκαναλικό Wiener Smoothing. Τα δεδομένα έχουν προηγουμένως χωριστεί 
+σε `καθαρά' και `θορυβώδη' χρονικά διαστήματα, με βάση τις θέσεις των blink. Για κάθε τέτοιο διάστημα, 
+υπολογίζεται ο αντίστοιχος πίνακας αυτοσυσχέτισης, ο οποίος στη συνέχεια προστίθεται στον συνολικό πίνακα 
+με βάρος (συντελεστή $\alpha$) ανάλογο του σχετικού μήκους του διαστήματος σε σχέση με το πλήθος των συνολικών 
+καθαρών ή θορυβωδών δειγμάτων. Σημειώνεται ότι, για κάθε διάστημα, από τα δεδομένα αφαιρείται η μέση τιμή 
+όλων των καθαρών ή θορυβωδών δειγμάτων, και όχι μόνο αυτών του εκάστοτε διαστήματος.
+
+\begin{lstlisting}
+noisy_mean = mean(x_train(blinks));
+clean_mean = mean(x_train(not_blinks));
+
+for i = 1:length(cleanIntervals)
+    idx = cleanIntervals{i}(1):cleanIntervals{i}(2);
+    data = x_train(idx) - clean_mean;
+    r_full = xcorr(data, M - 1, 'unbiased');
+    alpha = length(idx) / n_clean;
+    R_ss = R_ss + alpha * toeplitz(r_full(M:end));
+end
+
+for i = 1:length(noisyIntervals)
+    idx = noisyIntervals{i}(1):noisyIntervals{i}(2);
+    data = x_train(idx) - noisy_mean;
+    r_full = xcorr(data, M - 1, 'unbiased');
+    alpha = length(idx) / n_noisy;
+    R_xx = R_xx + alpha * toeplitz(r_full(M:end));
+end
+\end{lstlisting}
+
+Στην μονοκαναλική περίπτωση, ο πίνακας αυτοσυσχέτισης $R_{ss}$ υπολογίζεται με τη συνάρτηση 
+\texttt{xcorr} και μετατρέπεται σε πίνακα Toeplitz. Αντίθετα, στην πολυκαναλική περίπτωση, 
+χρησιμοποιείται ένας υστέρησης $X$ που ενσωματώνει τόσο χρονικές όσο και διακαναλικές 
+εξαρτήσεις, και ο $R_{ss}$ προκύπτει ως ο σταθμισμένος μέσος όρος των $XX^T$. Παρακάτω
+φαίνεται ο τρόπος υπολογισμού του πίνακα αυτοσυσχέτισης $R_{ss}$ καθώς και η συνάρτηση που 
+κατασκευάζει τον πίνακα υστερήσεων.
+\begin{lstlisting}
+for i = 1:length(cleanIntervals)
+    idx = cleanIntervals{i}(1):cleanIntervals{i}(2);
+    data = x_train(:, idx) - clean_mean;
+    X = build_lagged_matrix(data, L);  % [C*M x T]
+    alpha = length(idx) / n_clean;
+    R_ss = R_ss + alpha * (X * X') / size(X, 2);
+end
+
+function X = build_lagged_matrix(data, M)
+    % data: [C x T]
+    [C, T] = size(data);
+    T_windows = T - M + 1;
+    X = zeros(C * M, T_windows);
+
+    for t = 1:T_windows
+        block = data(:, t:t+M-1);  % [C x M]
+        X(:, t) = block(:);        % [C*M x 1]
+    end
+end   
+\end{lstlisting}
+
+Από το Σχήμα~\ref{fig:single_vs_multi_channel_RMSE} παρατηρούμε ότι το πολυκαναλικό 
+\textit{Smoothing} επιτυγχάνει μικρότερες τιμές RMSE σε σύγκριση με το μονοκαναλικό 
+στην πλειονότητα των καναλιών. Αυτό οφείλεται στο γεγονός ότι η πολυκαναλική προσέγγιση 
+αξιοποιεί τις διακαναλικές συσχετίσεις κατά την αποθορυβοποίηση, μειώνοντας την απώλεια 
+πληροφορίας. Συγκριτικά, η μέση τιμή του RMSE για το μονοκαναλικό \textit{Smoothing} είναι 
+$22.814$, ενώ για το πολυκαναλικό $11.0073$.
+\begin{figure}
+    \centering
+    \includegraphics[width=0.5\linewidth]{plot/single_vs_multi_channel_RMSE.pdf}
+    \caption{RMSE μονοκαναλικού και πολυκαναλικού Smoothing για όλα τα κανάλια}
+    \label{fig:single_vs_multi_channel_RMSE}
+\end{figure}
 
 
 \newpage 
