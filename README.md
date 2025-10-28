@@ -2,7 +2,7 @@
 
 This repository contains the assignments for the **Estimation and Detection Theory** course at ECE AUTH for the 2024–2025 academic year.
 
-**Authors:** Georgios Rousomanis (10703), Aristeidis Daskalopoulos (10640)
+> *Authors:* Georgios Rousomanis, Aristeidis Daskalopoulos
 
 ## 📂 Repository Structure
 
